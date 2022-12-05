@@ -7,26 +7,28 @@ import (
 )
 
 func main() {
-	var sum int
+	var sum uint64
 	sc := bufio.NewScanner(os.Stdin)
 	for sc.Scan() {
 		rucksack := sc.Text()
-		set := map[rune]bool{}
+		var set uint64
 		for i, item := range rucksack {
+			prio := priority(item)
+			mask := uint64(1) << prio
 			if i < len(rucksack)/2 {
-				set[item] = true
-			} else if set[item] {
-				sum += priority(item)
-				delete(set, item)
+				set |= mask
+			} else if set&mask == mask {
+				sum += prio
+				set &^= mask // delete
 			}
 		}
 	}
 	fmt.Println(sum)
 }
 
-func priority(item rune) int {
+func priority(item rune) uint64 {
 	if item >= 'a' && item <= 'z' {
-		return int(item-'a') + 1
+		return uint64(item-'a') + 1
 	}
-	return int(item-'A') + 27
+	return uint64(item-'A') + 27
 }
