@@ -20,14 +20,8 @@ func main() {
 			pair[i][1], _ = strconv.Atoi(ps[1])
 		}
 
-		switch { // sort
-		case pair[0][0] > pair[1][0]:
-			fallthrough
-		case pair[0][0] == pair[1][0] && pair[0][1] < pair[1][1]:
-			pair[0], pair[1] = pair[1], pair[0]
-		}
-
-		if pair[1][0] <= pair[0][1] {
+		if (pair[0][0] <= pair[1][1] && pair[0][1] >= pair[1][0]) ||
+			(pair[1][0] <= pair[0][0] && pair[1][0] >= pair[0][1]) {
 			count++
 		}
 	}
