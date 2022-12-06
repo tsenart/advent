@@ -1,14 +1,13 @@
 package main
 
 import (
-	"fmt"
+	"io"
 	"math/bits"
+	"os"
 )
 
 func main() {
-	var datastream []byte
-	fmt.Scanln(&datastream)
-
+	datastream, _ := io.ReadAll(os.Stdin)
 	for i := 0; i < len(datastream)-3; i++ {
 		marker := uint32(
 			1<<(datastream[i]-'a') |
@@ -16,9 +15,8 @@ func main() {
 				1<<(datastream[i+2]-'a') |
 				1<<(datastream[i+3]-'a'),
 		)
-
 		if bits.OnesCount32(marker) == 4 {
-			fmt.Println(i + 4)
+			println(i + 4)
 			break
 		}
 	}
