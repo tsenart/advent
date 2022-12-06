@@ -9,7 +9,7 @@ func main() {
 	var datastream []byte
 	fmt.Scanln(&datastream)
 
-	for i := 0; i < len(datastream); i++ {
+	for i := 0; i < len(datastream)-13; i++ {
 		var marker uint32
 		for j := 0; j < 14; j++ {
 			marker |= 1 << (datastream[i+j] - 'a')
