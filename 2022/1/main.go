@@ -13,7 +13,7 @@ func main() {
 	inventory := 0
 
 	sc := bufio.NewScanner(os.Stdin)
-	for sc.Scan() {
+	for sc.Scan() || inventory != 0 {
 		line := sc.Text()
 		if line != "" {
 			item, err := strconv.Atoi(line)
