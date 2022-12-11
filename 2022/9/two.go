@@ -58,9 +58,7 @@ func main() {
 				}
 			}
 
-			if !set[knots[len(knots)-1]] {
-				set[knots[len(knots)-1]] = true
-			}
+			set[knots[len(knots)-1]] = true
 		}
 	}
 
