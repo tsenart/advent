@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"fmt"
 	"os"
-	"sort"
 	"strconv"
 	"time"
 )
@@ -14,34 +13,32 @@ func main() {
 	began := time.Now()
 	sc := bufio.NewScanner(os.Stdin)
 
-	var packets []packet
-	for sc.Scan() {
-		if line := sc.Bytes(); len(line) != 0 {
-			_, pkt := parse(line)
-			packets = append(packets, pkt)
-		}
-	}
-
-	dividers := []packet{
+	divs := []packet{
 		list{list{integer(2)}},
 		list{list{integer(6)}},
 	}
 
-	packets = append(packets, dividers...)
+	idxs := []int{1, 2}
 
-	sort.Slice(packets, func(i, j int) bool {
-		return packets[i].Compare(packets[j]) < 0
-	})
+	for sc.Scan() {
+		line := sc.Bytes()
+		if len(line) == 0 {
+			continue
+		}
 
-	product := 1
-	for _, p := range dividers {
-		i, _ := sort.Find(len(packets), func(i int) int {
-			return p.Compare(packets[i])
-		})
-		product *= i + 1
+		_, pkt := parse(line)
+		for i, div := range divs {
+			if pkt.Compare(div) >= 0 {
+				continue
+			}
+			for j := i; j < len(idxs); j++ {
+				idxs[j]++
+			}
+			break
+		}
 	}
 
-	fmt.Println(product, time.Since(began))
+	fmt.Println(idxs[0]*idxs[1], time.Since(began))
 }
 
 type packet interface {
