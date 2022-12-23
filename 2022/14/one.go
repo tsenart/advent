@@ -2,109 +2,85 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
-	"math"
 	"os"
 	"strconv"
-	"strings"
+	"time"
 )
 
 func main() {
-	f, _ := os.Open("/Users/tomas/Code/advent/2022/14/example.in")
-	sc := bufio.NewScanner(f)
-
-	type point struct{ x, y int }
-
 	var (
-		paths [][]point
-		min   = point{x: math.MaxInt, y: math.MaxInt}
+		began = time.Now()
+		grid  = map[point]bool{}
+		sc    = bufio.NewScanner(os.Stdin)
 		max   point
 	)
 
 	for sc.Scan() {
-		var path []point
-		for _, p := range strings.Split(sc.Text(), " -> ") {
-			xy := strings.SplitN(p, ",", 2)
-			x, _ := strconv.Atoi(xy[0])
-			y, _ := strconv.Atoi(xy[1])
+		prev, path := parse(sc.Bytes())
 
-			path = append(path, point{x, y})
+		for len(path) > 0 {
+			var next, src, dst point
 
-			if x > max.x {
-				max.x = x
-			} else if x < min.x {
-				min.x = x
-			}
+			next, path = parse(path)
+			src.x, dst.x = minMax(prev.x, next.x)
+			src.y, dst.y = minMax(prev.y, next.y)
+			_, max.x = minMax(max.x, dst.x)
+			_, max.y = minMax(max.y, dst.y)
 
-			if y > max.y {
-				max.y = y
-			} else if y < min.y {
-				min.y = y
-			}
-		}
-		paths = append(paths, path)
-	}
-
-	width := (max.x - min.x) + 1
-	height := max.y + 1
-	normalize := func(p point) point {
-		if min.x > 0 {
-			p.x -= min.x
-		}
-		return p
-	}
-
-	fmt.Printf("width: %d, height: %d, min: %+v, max: %+v", width, height, min, max)
-	grid := make([]byte, width*height)
-
-	for _, path := range paths {
-		for len(path) > 1 {
-			src, dst := normalize(path[0]), normalize(path[1])
-			dx := dst.x - src.x
-			dy := dst.y - src.y
-
-		line:
-			for {
-				grid[src.y*width+src.x] = '#'
-				switch {
-				case dx != 0:
-					s := sign(dx)
-					src.x += s
-					dx -= s
-				case dy != 0:
-					s := sign(dy)
-					src.y += s
-					dy -= s
-				default:
-					break line
+			for x := src.x; x <= dst.x; x++ {
+				for y := src.y; y <= dst.y; y++ {
+					grid[point{x, y}] = true
 				}
 			}
 
-			path = path[1:]
+			prev = next
 		}
 	}
 
-	debug(grid, width)
+	total := 0
+
+	for {
+		sand := point{500, 0}
+
+	drop:
+		for {
+			switch {
+			case sand.y >= max.y:
+				fmt.Println(total, time.Since(began))
+				os.Exit(0)
+			case !grid[point{sand.x, sand.y + 1}]:
+				sand.y++
+			case !grid[point{sand.x - 1, sand.y + 1}]:
+				sand.x--
+				sand.y++
+			case !grid[point{sand.x + 1, sand.y + 1}]:
+				sand.x++
+				sand.y++
+			default:
+				grid[sand] = true
+				total++
+				break drop
+			}
+		}
+	}
 }
 
-func sign(n int) int {
-	if n > 0 {
-		return 1
-	}
-	return -1
+type point struct{ x, y uint16 }
+
+func parse(p []byte) (point, []byte) {
+	xp, p, _ := bytes.Cut(p, []byte(","))
+	x, _ := strconv.ParseUint(string(xp), 10, 16)
+	yp, p, _ := bytes.Cut(p, []byte(" "))
+	y, _ := strconv.ParseUint(string(yp), 10, 16)
+	_, p, _ = bytes.Cut(p, []byte(" "))
+	return point{uint16(x), uint16(y)}, p
 }
 
-func debug(grid []byte, width int) {
-	for i, cell := range grid {
-		if i%width == 0 {
-			fmt.Printf("\n%d ", i/width)
-		}
-
-		if cell == 0 {
-			fmt.Printf("%s", ".")
-		} else {
-			fmt.Printf("%c", cell)
-		}
+func minMax(a, b uint16) (uint16, uint16) {
+	if a < b {
+		return a, b
 	}
-	fmt.Println()
+	return b, a
 }
