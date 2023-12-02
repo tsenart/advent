@@ -20,30 +20,22 @@ pub fn main() !void {
         };
 
         const line = fbs.getWritten();
-        var first: i8 = -1;
-        var last: i8 = -1;
+        var first: ?u8 = null;
+        var last: ?u8 = null;
 
         for (line, 0..) |_, i| {
-            const digit = parseDigit(line[i..]);
-            if (digit == -1) {
-                continue;
-            } else if (first == -1) {
-                first = digit;
-            } else {
-                last = digit;
+            if (parseDigit(line[i..])) |digit| {
+                if (first == null) {
+                    first = digit;
+                } else {
+                    last = digit;
+                }
             }
         }
 
-        if (first == -1) {
-            continue;
-        }
-
-        if (last == -1) {
-            last = first;
-        }
-
-        const n = 10 * @as(u64, @intCast(first)) + @as(u64, @intCast(last));
-        sum += n;
+        const f = first orelse continue;
+        const l = last orelse f;
+        sum += 10 * f + l;
 
         fbs.reset();
     }
@@ -53,20 +45,11 @@ pub fn main() !void {
 
 const digitWords = [_][]const u8{ "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine" };
 
-fn parseDigit(line: []const u8) i8 {
-    if (line.len == 0) {
-        return -1;
-    }
-
-    if (isAsciiDigit(line[0])) {
-        return @as(i8, @intCast(line[0] - '0'));
-    }
-
+fn parseDigit(line: []const u8) ?u8 {
+    if (line.len == 0) return null;
+    if (isAsciiDigit(line[0])) return line[0] - '0';
     for (digitWords, 0..) |word, digit| {
-        if (startsWith(u8, line, word)) {
-            return @as(i8, @intCast(digit));
-        }
+        if (startsWith(u8, line, word)) return @intCast(digit);
     }
-
-    return -1;
+    return null;
 }
