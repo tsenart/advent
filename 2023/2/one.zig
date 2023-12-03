@@ -1,14 +1,13 @@
 const std = @import("std");
+const aoc = @import("aoc.zig");
 const ascii = std.ascii;
 const debug = std.debug;
 const mem = std.mem;
 const fmt = std.fmt;
 
 pub fn main() !void {
-    var buf: [4096]u8 = undefined;
-    var fbs = std.io.fixedBufferStream(&buf);
-    const writer = fbs.writer();
-    const stdin = std.io.getStdIn().reader();
+    var stdin = std.io.bufferedReader(std.io.getStdIn().reader());
+    var sc = aoc.fixedBufferScanner(stdin.reader(), '\n', 4096);
 
     const limits: [3 * maxRounds]u8 =
         ([_]u8{12} ** maxRounds) ++ // Red
@@ -16,21 +15,10 @@ pub fn main() !void {
         ([_]u8{14} ** maxRounds); // Blue
 
     var sum: u64 = 0;
-    while (true) {
-        stdin.streamUntilDelimiter(writer, '\n', buf.len) catch |err| switch (err) {
-            error.EndOfStream => if (fbs.getWritten().len == 0) break,
-            else => {
-                debug.print("Error: {s}\n", .{@errorName(err)});
-                return;
-            },
-        };
-
-        const line = fbs.getWritten();
+    while (try sc.next()) |line| {
         const game = parseGame(line) orelse return;
         if (@reduce(.And, game.colors <= limits))
             sum += game.id;
-
-        fbs.reset();
     }
 
     debug.print("{d}\n", .{sum});

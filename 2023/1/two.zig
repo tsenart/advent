@@ -1,25 +1,14 @@
 const std = @import("std");
+const aoc = @import("aoc.zig");
 const print = std.debug.print;
 const startsWith = std.mem.startsWith;
 const isAsciiDigit = std.ascii.isDigit;
 
 pub fn main() !void {
-    var buf: [4096]u8 = undefined;
-    var fbs = std.io.fixedBufferStream(&buf);
-    const writer = fbs.writer();
-    const stdin = std.io.getStdIn().reader();
+    var stdin = std.io.bufferedReader(std.io.getStdIn().reader());
+    var sc = aoc.fixedBufferScanner(stdin.reader(), '\n', 4096);
     var sum: u64 = 0;
-
-    while (true) {
-        stdin.streamUntilDelimiter(writer, '\n', buf.len) catch |err| switch (err) {
-            error.EndOfStream => if (fbs.getWritten().len == 0) break,
-            else => {
-                print("Error: {s}\n", .{@errorName(err)});
-                return;
-            },
-        };
-
-        const line = fbs.getWritten();
+    while (try sc.next()) |line| {
         var first: ?u8 = null;
         var last: ?u8 = null;
 
@@ -36,8 +25,6 @@ pub fn main() !void {
         const f = first orelse continue;
         const l = last orelse f;
         sum += 10 * f + l;
-
-        fbs.reset();
     }
 
     print("{d}\n", .{sum});
