@@ -16,7 +16,11 @@ pub fn FixedBufferScanner(comptime buflen: usize, comptime ReaderType: type) typ
 
             var fbs = self.fbs orelse unreachable;
 
-            fbs.reset();
+            const i = try fbs.getPos();
+            if (i == buflen - 1) {
+                fbs.reset();
+            }
+
             self.reader.streamUntilDelimiter(fbs.writer(), self.delimiter, buflen) catch |err| switch (err) {
                 error.EndOfStream => {
                     const chunk = fbs.getWritten();
@@ -24,7 +28,8 @@ pub fn FixedBufferScanner(comptime buflen: usize, comptime ReaderType: type) typ
                 },
                 else => return err,
             };
-            return fbs.getWritten();
+
+            return fbs.getWritten()[i..];
         }
     };
 }
